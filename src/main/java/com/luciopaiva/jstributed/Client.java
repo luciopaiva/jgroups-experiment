@@ -4,7 +4,6 @@ import org.jgroups.JChannel;
 import org.jgroups.Message;
 import org.jgroups.ReceiverAdapter;
 import org.jgroups.View;
-import org.jgroups.util.Util;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -23,8 +22,7 @@ public class Client extends ReceiverAdapter {
     private void broadcast(String payload) throws Exception {
         // ToDo reuse message object
         ClientMessage clientMessage = new ClientMessage(this.userName, payload);
-        byte[] serializedMessage = Util.objectToByteBuffer(clientMessage);
-        Message message = new Message(null, serializedMessage);
+        Message message = new Message(null, clientMessage);
         channel.send(message);
     }
 
@@ -34,7 +32,7 @@ public class Client extends ReceiverAdapter {
 
     public void receive(Message message) {
         try {
-            ClientMessage clientMessage = Util.objectFromByteBuffer(message.getBuffer());
+            ClientMessage clientMessage = message.getObject();
             System.out.println();
             System.out.println(String.format("< %s says: %s", clientMessage.getUserName(), clientMessage.getMessage()));
         } catch (Exception e) {
