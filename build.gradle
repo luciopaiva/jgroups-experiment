@@ -13,4 +13,12 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
+
+    // https://mvnrepository.com/artifact/org.jgroups/jgroups
+    compile group: 'org.jgroups', name: 'jgroups', version: '4.0.11.Final'
+}
+
+jar {
+    // build the jar with all dependencies, ready to run anywhere
+    from configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
 }
