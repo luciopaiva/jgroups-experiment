@@ -3,8 +3,8 @@ package com.luciopaiva.jstributed;
 import java.io.Serializable;
 
 class ClientMessage implements Serializable {
-    private final String userName;
-    private final String message;
+    private String userName;
+    private String message;
 
     ClientMessage(String userName, String message) {
         this.userName = userName;
@@ -17,5 +17,13 @@ class ClientMessage implements Serializable {
 
     String getMessage() {
         return message;
+    }
+
+    void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    void setMessage(String message) {
+        this.message = message;
     }
 }

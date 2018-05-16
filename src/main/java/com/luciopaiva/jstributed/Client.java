@@ -12,17 +12,16 @@ public class Client extends ReceiverAdapter {
 
     private BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
     private JChannel channel;
-    private String userName;
+    private ClientMessage reusableClientMessage = new ClientMessage("", "");
 
     private Client(String userName) throws Exception {
-        this.userName = userName;
+        this.reusableClientMessage.setUserName(userName);
         this.run();
     }
 
     private void broadcast(String payload) throws Exception {
-        // ToDo reuse message object
-        ClientMessage clientMessage = new ClientMessage(this.userName, payload);
-        Message message = new Message(null, clientMessage);
+        reusableClientMessage.setMessage(payload);
+        Message message = new Message(null, reusableClientMessage);
         channel.send(message);
     }
 
