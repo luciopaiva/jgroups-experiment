@@ -1,5 +1,6 @@
 package com.luciopaiva.jstributed;
 
+import org.jgroups.Address;
 import org.jgroups.JChannel;
 import org.jgroups.Message;
 import org.jgroups.ReceiverAdapter;
@@ -7,12 +8,20 @@ import org.jgroups.View;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.StringJoiner;
 
 public class Client extends ReceiverAdapter {
 
     private BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
     private JChannel channel;
     private ClientMessage reusableClientMessage = new ClientMessage("", "");
+    private Message message = new Message(null, reusableClientMessage);
+    private Set<Address> previousNodes = new HashSet<>();
+    private Set<Address> currentNodes = new HashSet<>();
+    private Set<Address> nodesLeft = new HashSet<>();
+    private Set<Address> nodesJoined = new HashSet<>();
 
     private Client(String userName) throws Exception {
         this.reusableClientMessage.setUserName(userName);
@@ -21,12 +30,34 @@ public class Client extends ReceiverAdapter {
 
     private void broadcast(String payload) throws Exception {
         reusableClientMessage.setMessage(payload);
-        Message message = new Message(null, reusableClientMessage);
         channel.send(message);
     }
 
     public void viewAccepted(View view) {
-        System.out.println("$ view: " + view);
+        Set<Address> temp = previousNodes;
+        previousNodes = currentNodes;
+        currentNodes = temp;
+
+        System.out.println("Received new view " + view.getViewId());
+        if (currentNodes != null) {
+            currentNodes.clear();
+            currentNodes.addAll(view.getMembers());
+
+            StringJoiner membersJoined = new StringJoiner(", ");
+            StringJoiner membersLeft = new StringJoiner(", ");
+
+            Utils.distinctInCollections(previousNodes, currentNodes, nodesLeft, nodesJoined);
+            nodesLeft.forEach(node -> membersLeft.add(node.toString()));
+            nodesJoined.forEach(node -> membersJoined.add(node.toString()));
+
+            if (!nodesJoined.isEmpty()) {
+                System.out.println("New members have joined: " + membersJoined.toString());
+            }
+            if (!nodesLeft.isEmpty()) {
+                System.out.println("Some members have left: " + membersLeft.toString());
+            }
+        }
+        prompt();
     }
 
     public void receive(Message message) {
@@ -37,6 +68,11 @@ public class Client extends ReceiverAdapter {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        prompt();
+    }
+
+    private void prompt() {
+        System.out.println("Type message to send:");
     }
 
     private void run() throws Exception {
@@ -46,8 +82,7 @@ public class Client extends ReceiverAdapter {
         System.out.println("Members online: " + channel.getView().getMembers().size());
 
         while (true) {
-            System.out.print("> ");
-            System.out.flush();
+            prompt();
             String line = in.readLine().trim();
 
             if (line.isEmpty()) {
