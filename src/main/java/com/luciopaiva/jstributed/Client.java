@@ -16,7 +16,7 @@ public class Client extends ReceiverAdapter {
 
     private BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
     private JChannel channel;
-    private ClientMessage reusableClientMessage = new ClientMessage("", "");
+    private ClientMessage reusableClientMessage = new ClientMessage("-", "-");
     private Message message = new Message(null, reusableClientMessage);
     private Set<Address> previousNodes = new HashSet<>();
     private Set<Address> currentNodes = new HashSet<>();
@@ -30,6 +30,8 @@ public class Client extends ReceiverAdapter {
 
     private void broadcast(String payload) throws Exception {
         reusableClientMessage.setMessage(payload);
+        // needs to be called to trigger serialization process
+        message.setObject(reusableClientMessage);
         channel.send(message);
     }
 
