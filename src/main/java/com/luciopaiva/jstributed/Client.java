@@ -79,6 +79,7 @@ public class Client extends ReceiverAdapter {
 
     private void run() throws Exception {
         channel = new JChannel();
+        channel.setDiscardOwnMessages(true);
         channel.setReceiver(this);
         channel.connect("cluster");
         System.out.println("Members online: " + channel.getView().getMembers().size());
